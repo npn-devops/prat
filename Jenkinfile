@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Clone') {
+            steps {
+                git 'https://github.com/your-username/your-git-repo.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t my-docker-image .'
+            }
+        }
+
+        stage('Publish Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                }
+                sh 'docker tag my-docker-image your-docker-username/your-docker-repo:tag'
+                sh 'docker push your-docker-username/your-docker-repo:tag'
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-credentials', keyFileVariable: 'SSH_KEY_PATH', usernameVariable: 'SSH_USERNAME')]) {
+                    sh 'ssh -o StrictHostKeyChecking=no -i $SSH_KEY_PATH $SSH_USERNAME@your-ec2-instance-ip "docker pull your-docker-username/your-docker-repo:tag"'
+                    sh 'ssh -o StrictHostKeyChecking=no -i $SSH_KEY_PATH $SSH_USERNAME@your-ec2-instance-ip "docker stop my-docker-container || true && docker rm my-docker-container || true"'
+                    sh 'ssh -o StrictHostKeyChecking=no -i $SSH_KEY_PATH $SSH_USERNAME@your-ec2-instance-ip "docker run -d --name my-docker-container -p 80:80 your-docker-username/your-docker-repo:tag"'
+                }
+            }
+        }
+    }
+}
+
