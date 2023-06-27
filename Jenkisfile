@@ -4,19 +4,19 @@ pipeline {
     stages {
         stage('Git Clone') {
             steps {
-                git 'https://github.com/your-username/your-git-repo.git'
+                git 'https://github.com/npn-devops/prat.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t my-docker-image .'
+                sh 'docker build -t my-php .'
             }
         }
 
         stage('Publish Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'npndevops5', username : 'npndevops')]) {
                     sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                 }
                 sh 'docker tag my-docker-image your-docker-username/your-docker-repo:tag'
