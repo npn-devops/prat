@@ -1,8 +1,8 @@
 # use nginx:alpine as base image
-FROM nginx:alpine
+FROM nginx:1.21
 
 # copy static website index.html into nginx default html folder
-COPY index.html /usr/share/nginx/html
+COPY index.html /usr/share/nginx/html/index.html
 
 # export port 80
 EXPOSE 80
